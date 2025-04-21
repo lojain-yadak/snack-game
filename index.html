@@ -1,72 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
-        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
-        <link rel="stylesheet" href="./assest/css.css">
+    <title>Snake Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+        .game-container {
+            aspect-ratio: 1 / 1;
+            max-width: 600px;
+            max-height: 600px;
+        }
+        .game-grid {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .dark .game-grid {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        @keyframes pulse-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse-animation 0.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-4">
+    <div class="text-center mb-4">
+        <h1 class="text-3xl font-bold text-primary mb-2">Snake Game</h1>
+        <p class="text-lg">Score: <span id="score" class="font-bold">0</span></p>
+    </div>
 
-    </head>
-<body>
+    <div class="game-container w-full mx-auto mb-4 border-2 border-primary rounded-lg overflow-hidden">
+        <div id="game-grid" class="game-grid"></div>
+    </div>
 
-    <div class="add-course">
-        <div class="container">
-            
-            <form action="">
-                
-                    <label for="">your full name</label>
-                    <input class="inputs form-control" type="text" placeholder="your full name" id="fullName">
-               
-                <label for="">your major</label>
-                <input class="inputs form-control" type="text" placeholder="your major" id="yourmajor">
-    
-                <label for="">your university</label>
-                <input class="inputs form-control" type="text" placeholder="your university" id="university">
-    
-                <label for="">your email</label>
-                <input class="inputs form-control" type="email" placeholder="your email" id="youremail"></input>
-    
-                <label for="">your university number</label>
-                <input class="inputs form-control" type="number" placeholder="your university number" id="youruninumber">
-                <div class="buttons">
-                <input type="submit" value="submit" class="btn" id="click" />
-                <button class="btn text-light bg-danger reset" type="reset">clear</button>
-            </div>
-            </form>
+    <!-- Mobile Controls -->
+    <div class="md:hidden flex flex-col items-center gap-2 w-full max-w-xs">
+        <div class="text-center text-sm text-gray-600 dark:text-gray-400 mb-2">Swipe on game area to move</div>
+        <div class="flex justify-center gap-2 mb-2">
+            <button id="btn-up" class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+            </button>
         </div>
-        <div class="container">
-
-            <table class="table table table-striped">
-                <thead>
-                    <tr>
-                        <th class="text-light">number</th>
-                        <th class="text-light">name</th>
-                        <th class="text-light">major</th>
-                        <th class="text-light">university</th>
-                        <th class="text-light">email</th>
-                        <th class="text-light">university#</th>
-                        <th class="text-light">update</th>
-                        <th class="text-light">delete</th>
-                    </tr>
-                </thead>
-                <tbody id="data">
-                    
-                </tbody>
-            </table>
+        <div class="flex justify-center gap-8">
+            <button id="btn-left" class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <button id="btn-right" class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex justify-center gap-2 mt-2">
+            <button id="btn-down" class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
         </div>
     </div>
-    <!-- bootstrap js file -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js"
-        integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy"
-        crossorigin="anonymous"></script>
-        <!-- sweet alert -->
-    <!-- custom js file -->
-    <script src="./assest/js.js"></script>
+
+    <!-- Desktop Controls -->
+    <div class="hidden md:block text-center text-gray-600 dark:text-gray-400 mt-4">
+        Use Arrow Keys or WASD to move
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg text-center max-w-md mx-4">
+            <h2 class="text-2xl font-bold mb-4 text-primary">Game Over!</h2>
+            <p class="mb-2">Your score: <span id="final-score" class="font-bold">0</span></p>
+            <button id="restart-button" class="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Check for dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Game Configuration
+        const GRID_SIZE = 20;
+        const GAME_SPEED = 150; // milliseconds between moves (lower = faster)
+        
+        // Game state
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let nextDirection = 'right';
+        let gameInterval;
+        let score = 0;
+        let gameActive = false;
+        
+        // DOM elements
+        const gameGrid = document.getElementById('game-grid');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const gameOverModal = document.getElementById('game-over');
+        const restartButton = document.getElementById('restart-button');
+        
+        // Control buttons (mobile)
+        const btnUp = document.getElementById('btn-up');
+        const btnDown = document.getElementById('btn-down');
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        
+        // Initialize game grid
+        function initializeGrid() {
+            gameGrid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+            gameGrid.style.gridTemplateRows = `repeat(${GRID_SIZE}, 1fr)`;
+            
+            // Clear existing cells if any
+            gameGrid.innerHTML = '';
+            
+            // Create grid cells
+            for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                gameGrid.appendChild(cell);
+            }
+        }
+        
+        // Initialize snake
+        function initializeSnake() {
+            // Start with a snake of length 3 in the middle of the grid
+            const middle = Math.floor(GRID_SIZE / 2);
+            snake = [
+                { x: middle, y: middle },
+                { x: middle - 1, y: middle },
+                { x: middle - 2, y: middle }
+            ];
+        }
+        
+        // Generate random food position
+        function generateFood() {
+            let position;
+            do {
+                position = {
+                    x: Math.floor(Math.random() * GRID_SIZE),
+                    y: Math.floor(Math.random() * GRID_SIZE)
+                };
+                // Make sure food doesn't spawn on the snake
+            } while (snake.some(segment => segment.x === position.x && segment.y === position.y));
+            
+            food = position;
+        }
+        
+        // Render game state
+        function render() {
+            // Clear all cells
+            const cells = gameGrid.children;
+            Array.from(cells).forEach(cell => {
+                cell.className = 'cell';
+            });
+            
+            // Render snake
+            snake.forEach((segment, index) => {
+                if (segment.x >= 0 && segment.x < GRID_SIZE && segment.y >= 0 && segment.y < GRID_SIZE) {
+                    const cellIndex = segment.y * GRID_SIZE + segment.x;
+                    if (cells[cellIndex]) {
+                        if (index === 0) {
+                            // Snake head
+                            cells[cellIndex].className = 'cell bg-primary';
+                        } else {
+                            // Snake body
+                            cells[cellIndex].className = 'cell bg-primary bg-opacity-80';
+                        }
+                    }
+                }
+            });
+            
+            // Render food
+            const foodIndex = food.y * GRID_SIZE + food.x;
+            if (cells[foodIndex]) {
+                cells[foodIndex].className = 'cell bg-red-500 pulse';
+            }
+        }
+        
+        // Move the snake
+        function moveSnake() {
+            if (!gameActive) return;
+            
+            // Update direction
+            direction = nextDirection;
+            
+            // Calculate new head position
+            const head = { ...snake[0] };
+            
+            switch (direction) {
+                case 'up':
+                    head.y -= 1;
+                    break;
+                case 'down':
+                    head.y += 1;
+                    break;
+                case 'left':
+                    head.x -= 1;
+                    break;
+                case 'right':
+                    head.x += 1;
+                    break;
+            }
+            
+            // Check for collision with walls
+            if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+                gameOver();
+                return;
+            }
+            
+            // Check for collision with self
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+            
+            // Add new head
+            snake.unshift(head);
+            
+            // Check if food is eaten
+            if (head.x === food.x && head.y === food.y) {
+                // Increase score
+                score += 10;
+                scoreElement.textContent = score;
+                
+                // Generate new food
+                generateFood();
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+            
+            // Update game display
+            render();
+        }
+        
+        // Game over function
+        function gameOver() {
+            gameActive = false;
+            clearInterval(gameInterval);
+            finalScoreElement.textContent = score;
+            gameOverModal.classList.remove('hidden');
+        }
+        
+        // Start/restart game
+        function startGame() {
+            // Reset game state
+            clearInterval(gameInterval);
+            initializeGrid();
+            initializeSnake();
+            generateFood();
+            direction = 'right';
+            nextDirection = 'right';
+            score = 0;
+            scoreElement.textContent = score;
+            gameActive = true;
+            gameOverModal.classList.add('hidden');
+            
+            // Start game loop
+            render();
+            gameInterval = setInterval(moveSnake, GAME_SPEED);
+        }
+        
+        // Handle keyboard input
+        function handleKeydown(e) {
+            const key = e.key.toLowerCase();
+            
+            // Prevent default behavior for arrow keys to avoid page scrolling
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+                e.preventDefault();
+            }
+            
+            // Change direction based on key, but prevent 180-degree turns
+            if ((key === 'arrowup' || key === 'w') && direction !== 'down') {
+                nextDirection = 'up';
+            } else if ((key === 'arrowdown' || key === 's') && direction !== 'up') {
+                nextDirection = 'down';
+            } else if ((key === 'arrowleft' || key === 'a') && direction !== 'right') {
+                nextDirection = 'left';
+            } else if ((key === 'arrowright' || key === 'd') && direction !== 'left') {
+                nextDirection = 'right';
+            }
+        }
+        
+        // Button controls for mobile
+        btnUp.addEventListener('click', () => {
+            if (direction !== 'down') nextDirection = 'up';
+        });
+        
+        btnDown.addEventListener('click', () => {
+            if (direction !== 'up') nextDirection = 'down';
+        });
+        
+        btnLeft.addEventListener('click', () => {
+            if (direction !== 'right') nextDirection = 'left';
+        });
+        
+        btnRight.addEventListener('click', () => {
+            if (direction !== 'left') nextDirection = 'right';
+        });
+        
+        // Swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        gameGrid.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        gameGrid.addEventListener('touchmove', (e) => {
+            if (!touchStartX || !touchStartY) return;
+            
+            const touchEndX = e.touches[0].clientX;
+            const touchEndY = e.touches[0].clientY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            // Check if horizontal or vertical swipe was greater
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                if (diffX > 30 && direction !== 'left') {
+                    nextDirection = 'right';
+                } else if (diffX < -30 && direction !== 'right') {
+                    nextDirection = 'left';
+                }
+            } else {
+                // Vertical swipe
+                if (diffY > 30 && direction !== 'up') {
+                    nextDirection = 'down';
+                } else if (diffY < -30 && direction !== 'down') {
+                    nextDirection = 'up';
+                }
+            }
+            
+            // Reset touch coordinates for next swipe
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
+        }, { passive: true });
+        
+        // Event listeners
+        document.addEventListener('keydown', handleKeydown);
+        restartButton.addEventListener('click', startGame);
+        
+        // Start the game
+        startGame();
+    </script>
 </body>
 </html>
